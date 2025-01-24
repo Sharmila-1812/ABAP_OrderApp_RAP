@@ -1,0 +1,17 @@
+managed implementation in class zbp_i_sha_customer unique;
+strict ( 2 );
+
+define behavior for ZI_SHA_CUSTOMER //alias <alias_name>
+persistent table zsha_customer
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create;
+  update;
+  delete;
+  field ( readonly ) Customerid;
+  field ( numbering : managed ) Customerid;
+  field ( mandatory : create ) City, Country;
+
+}

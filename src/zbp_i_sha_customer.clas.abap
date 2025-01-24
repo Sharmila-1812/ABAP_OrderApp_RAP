@@ -1,0 +1,5 @@
+CLASS zbp_i_sha_customer DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zi_sha_customer.
+ENDCLASS.
+
+CLASS zbp_i_sha_customer IMPLEMENTATION.
+ENDCLASS.

@@ -1,0 +1,4 @@
+@EndUserText.label: 'Customer Service Definition'
+define service ZSD_SHA_Customer {
+  expose ZC_SHA_CUSTOMER;
+}

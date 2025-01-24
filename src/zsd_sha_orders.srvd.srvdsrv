@@ -1,0 +1,5 @@
+@EndUserText.label: 'Order Service Def'
+define service ZSD_SHA_ORDERS {
+  expose ZC_SHA_ORDERS;
+  expose ZC_SHA_ORDER_ITEMS;
+}

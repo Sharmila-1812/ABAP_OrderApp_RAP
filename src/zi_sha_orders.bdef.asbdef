@@ -1,0 +1,32 @@
+managed implementation in class zbp_i_sha_orders unique;
+strict ( 2 );
+
+define behavior for ZI_SHA_ORDERS //alias <alias_name>
+persistent table zsha_orders
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create;
+  update;
+  delete;
+  field ( readonly ) Orderid;
+  field ( numbering : managed ) Orderid;
+  field ( mandatory : create ) Customerid,Orderdate,Amount,Status;
+  field (readonly: update ) Customerid;
+  association _orderItems { create; }
+}
+
+define behavior for ZI_SHA_ORDER_ITEMS //alias <alias_name>
+persistent table zsha_order_items
+lock dependent by _orders
+authorization dependent by _orders
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) Orderitemid,Orderid;
+  field ( numbering : managed ) Orderitemid;
+  field ( mandatory : create ) Productname,Quantity,Totalprice;
+  association _orders;
+}
