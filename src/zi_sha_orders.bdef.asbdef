@@ -14,7 +14,7 @@ authorization master ( instance )
   field ( numbering : managed ) Orderid;
   field ( mandatory : create ) Customerid,Orderdate,Amount,Status;
   field (readonly: update ) Customerid;
-  association _orderItems { create; }
+  association _orderItems { create  ( features : instance ); }
 }
 
 define behavior for ZI_SHA_ORDER_ITEMS //alias <alias_name>
@@ -28,5 +28,7 @@ authorization dependent by _orders
   field ( readonly ) Orderitemid,Orderid;
   field ( numbering : managed ) Orderitemid;
   field ( mandatory : create ) Productname,Quantity,Totalprice;
+  determination detOrderAmount  on save { create; field Totalprice,Cukyfield; }
+  field (readonly: update ) Totalprice,Cukyfield;
   association _orders;
 }

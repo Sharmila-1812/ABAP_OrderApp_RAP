@@ -53,6 +53,7 @@ provider contract transactional_query
     @EndUserText.label: 'Order Amount'
     Amount,
      @UI.identification: [ {position: 50} ]
+     @UI.selectionField: [{ position: 30 }]
      @UI.lineItem: [ { position: 30} ]
     @EndUserText.label: 'Order Status'
     @Consumption.valueHelpDefinition: [{ entity: {element: 'Status', name: 'ZI_SHA_ORDERSTATUS' } }]
