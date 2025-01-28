@@ -8,6 +8,8 @@ define behavior for ZC_SHA_ORDERS //alias <alias_name>
   use delete;
 
   use association _orderItems { create; }
+  use action setCompleted;
+  use action setCancelled;
 }
 
 define behavior for ZC_SHA_ORDER_ITEMS //alias <alias_name>

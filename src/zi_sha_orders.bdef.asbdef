@@ -8,13 +8,17 @@ authorization master ( instance )
 //etag master <field_name>
 {
   create;
-  update;
-  delete;
+  update ( features : instance );
+  delete ( features : instance );
   field ( readonly ) Orderid;
   field ( numbering : managed ) Orderid;
-  field ( mandatory : create ) Customerid,Orderdate,Amount,Status;
-  field (readonly: update ) Customerid;
+  field ( mandatory : create ) Customerid,Orderdate,Status;
+  field (readonly: update ) Customerid,Status;
+
   association _orderItems { create  ( features : instance ); }
+  action setCompleted;
+  action setCancelled parameter zsha_order_cmts_input;
+
 }
 
 define behavior for ZI_SHA_ORDER_ITEMS //alias <alias_name>
@@ -23,12 +27,12 @@ lock dependent by _orders
 authorization dependent by _orders
 //etag master <field_name>
 {
-  update;
-  delete;
+  update ( features : instance );
+  delete ( features : instance );
   field ( readonly ) Orderitemid,Orderid;
   field ( numbering : managed ) Orderitemid;
   field ( mandatory : create ) Productname,Quantity,Totalprice;
   determination detOrderAmount  on save { create; field Totalprice,Cukyfield; }
-  field (readonly: update ) Totalprice,Cukyfield;
+  field (readonly: update ) Totalprice; //,Cukyfield;
   association _orders;
 }
