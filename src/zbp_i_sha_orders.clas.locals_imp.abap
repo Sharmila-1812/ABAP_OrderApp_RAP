@@ -28,6 +28,7 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
 
       LOOP AT result_items INTO DATA(items_amt).
 "IF ( result_amount[ 1 ]-Curr  = result_items[ 1 ]-Cukyfield  ).
+
           result_amount[ 1 ]-Amount = result_amount[ 1 ]-Amount + items_amt-Totalprice.
           result_amount[ 1 ]-Curr = result_items[ 1 ]-Cukyfield.
 "ENDIF.
@@ -51,10 +52,11 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
+  LOOP AT keys INTO DATA(key).
    READ ENTITIES OF zi_sha_orders IN LOCAL MODE
     ENTITY zi_sha_order_items by \_orders
   FIELDS ( Status )
-  WITH VALUE #( ( %key-Orderitemid = keys[ 1 ]-%key-Orderitemid ) )
+  WITH VALUE #( ( %key-Orderitemid = key-Orderitemid ) )
   RESULT DATA(Status).
 
   DATA(lv_feature_control) = if_abap_behv=>fc-o-enabled.
@@ -62,10 +64,11 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
       lv_feature_control = if_abap_behv=>fc-o-disabled.
     ENDIF.
 
-    result = VALUE #( ( %tky = keys[ 1 ]-%tky
+result = VALUE #( ( %tky = key-%tky
        %features-%delete = lv_feature_control
        %features-%update = lv_feature_control
         ) ).
+ENDLOOP.
 
   ENDMETHOD.
 
@@ -82,6 +85,8 @@ CLASS lhc_ZI_SHA_ORDERS DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING keys FOR ACTION zi_sha_orders~setcompleted.
     METHODS setcancelled FOR MODIFY
       IMPORTING keys FOR ACTION zi_sha_orders~setcancelled.
+    METHODS detstatus FOR DETERMINE ON SAVE
+      IMPORTING keys FOR zi_sha_orders~detstatus.
 
 
 ENDCLASS.
@@ -92,28 +97,29 @@ CLASS lhc_ZI_SHA_ORDERS IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
+  LOOP AT keys INTO DATA(key).
     READ ENTITIES OF zi_sha_orders IN LOCAL MODE
     ENTITY zi_sha_orders BY \_orderItems
         FIELDS ( Orderitemid  )
-        WITH VALUE #( ( %key-Orderid = keys[ 1 ]-%key-Orderid ) )
+        WITH VALUE #( ( %key-Orderid = key-Orderid ) )
         RESULT DATA(Orders).
 
     READ ENTITIES OF zi_sha_orders IN LOCAL MODE
     ENTITY zi_sha_orders
   FIELDS ( Status )
-  WITH VALUE #( ( %key-Orderid = keys[ 1 ]-%key-Orderid ) )
+  WITH VALUE #( ( %key-Orderid = key-Orderid ) )
   RESULT DATA(Status).
 
     DATA(lv_feature_control) = if_abap_behv=>fc-o-enabled.
     IF lines( orders ) = 5 OR status[ 1 ]-Status = 'CMP' OR status[ 1 ]-Status = 'CAN'.
       lv_feature_control = if_abap_behv=>fc-o-disabled.
     ENDIF.
-
-    result = VALUE #( ( %tky = keys[ 1 ]-%tky
+result = VALUE #(  ( %tky = key-%tky
        %features-%assoc-_orderItems = lv_feature_control
        %features-%delete = lv_feature_control
        %features-%update = lv_feature_control
         ) ).
+ENDLOOP.
 
   ENDMETHOD.
 
@@ -176,5 +182,19 @@ CLASS lhc_ZI_SHA_ORDERS IMPLEMENTATION.
   ENDMETHOD.
 
 
+
+  METHOD detStatus.
+   MODIFY ENTITIES OF zi_sha_orders IN LOCAL MODE
+    ENTITY zi_sha_orders
+    UPDATE FROM VALUE #( ( %key-Orderid = keys[ 1 ]-%key-Orderid
+    Status = 'PRC'
+    Amount = '0.0'
+    Curr = 'INR'
+    %control-Status = if_abap_behv=>mk-on
+    %control-Amount = if_abap_behv=>mk-on
+    %control-Curr = if_abap_behv=>mk-on ) )
+    FAILED DATA(failed)
+    REPORTED DATA(reprt).
+  ENDMETHOD.
 
 ENDCLASS.

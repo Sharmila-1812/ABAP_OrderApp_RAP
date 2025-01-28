@@ -10,11 +10,11 @@ authorization master ( instance )
   create;
   update ( features : instance );
   delete ( features : instance );
-  field ( readonly ) Orderid;
+  field ( readonly ) Orderid ;
   field ( numbering : managed ) Orderid;
-  field ( mandatory : create ) Customerid,Orderdate,Status;
+  field ( mandatory : create ) Customerid,Orderdate;//Status;
   field (readonly: update ) Customerid,Status;
-
+  determination detStatus on save {create; } //field Status; }//,Amount
   association _orderItems { create  ( features : instance ); }
   action setCompleted;
   action setCancelled parameter zsha_order_cmts_input;

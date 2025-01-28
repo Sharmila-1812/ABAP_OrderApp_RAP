@@ -58,7 +58,7 @@ define root view entity ZC_SHA_ORDERS
       @UI.selectionField: [{ position: 30 }]
       @UI.lineItem: [ { position: 30} ]
       @EndUserText.label: 'Order Status'
-      @Consumption.valueHelpDefinition: [{ entity: {element: 'text', name: 'ZI_SHA_ORDERSTATUS' } }]
+      @Consumption.valueHelpDefinition: [{ entity: {element: 'value_low', name: 'ZI_SHA_ORDERSTATUS' } }]
 
       Status,
       @UI.identification: [ {position: 60} ]
