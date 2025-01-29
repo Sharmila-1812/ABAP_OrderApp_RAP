@@ -25,7 +25,7 @@ define view entity ZC_SHA_ORDER_ITEMS
           position: 10
           } ]
       @UI.identification: [ {position: 10} ]
-      @UI.lineItem: [ { position: 10} ]
+//      @UI.lineItem: [ { position: 10} ]
       @UI.selectionField: [{ position: 10 }]
       @EndUserText.label: 'Order Item ID'
   key Orderitemid,

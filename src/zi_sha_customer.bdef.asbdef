@@ -1,8 +1,10 @@
 managed implementation in class zbp_i_sha_customer unique;
 strict ( 2 );
+//with draft;
 
 define behavior for ZI_SHA_CUSTOMER //alias <alias_name>
 persistent table zsha_customer
+//draft table zsha_cust_d
 lock master
 authorization master ( instance )
 //etag master <field_name>
@@ -14,4 +16,9 @@ authorization master ( instance )
   field ( numbering : managed ) Customerid;
   field ( mandatory : create ) Name, Country, Email;
 
+// draft action Edit;
+//  draft action Activate;
+//  draft action Discard;
+//  draft action Resume;
+//  draft determine action Prepare;
 }

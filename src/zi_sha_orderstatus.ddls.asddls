@@ -7,16 +7,16 @@
     sizeCategory: #S,
     dataClass: #MIXED
 }
-@ObjectModel.resultSet.sizeCategory: #XS
+@ObjectModel.resultSet.sizeCategory: #XS  //For Dropdown
 define view entity ZI_SHA_ORDERSTATUS 
  as select from DDCDS_CUSTOMER_DOMAIN_VALUE_T(p_domain_name: 'ZORD_STATUS' )
 {
 key domain_name,
 key value_position,
-@Semantics.language: true
 key language,
+@ObjectModel.text.element: [ 'text' ]
+@UI.textArrangement: #TEXT_FIRST
 value_low,
-@Semantics.text: true
 text
 }
 

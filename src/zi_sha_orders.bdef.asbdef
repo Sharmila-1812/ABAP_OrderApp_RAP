@@ -1,38 +1,48 @@
 managed implementation in class zbp_i_sha_orders unique;
 strict ( 2 );
+//with draft;
 
 define behavior for ZI_SHA_ORDERS //alias <alias_name>
 persistent table zsha_orders
-lock master
+//draft table zsha_orders_d
+lock master //total etag Changedat
 authorization master ( instance )
-//etag master <field_name>
+etag master Lastchangedby
 {
   create;
   update ( features : instance );
   delete ( features : instance );
-  field ( readonly ) Orderid ;
+  field ( readonly ) Orderid,Createdat,Changedat,Createdby,Lastchangedby;
   field ( numbering : managed ) Orderid;
   field ( mandatory : create ) Customerid,Orderdate;//Status;
-  field (readonly: update ) Customerid,Status;
+  field (readonly: update ) Customerid,Status;//Amount,Curr;
   determination detStatus on save {create; } //field Status; }//,Amount
-  association _orderItems { create  ( features : instance ); }
+  association _orderItems { create  ( features : instance ); } //with draft; }
   action setCompleted;
   action setCancelled parameter zsha_order_cmts_input;
 
+//  draft action Edit;
+//  draft action Activate optimized;
+//  draft action Discard;
+//  draft action Resume;
+//  draft determine action Prepare;
 }
+
 
 define behavior for ZI_SHA_ORDER_ITEMS //alias <alias_name>
 persistent table zsha_order_items
+//draft table zsha_order_it_d
 lock dependent by _orders
 authorization dependent by _orders
-//etag master <field_name>
+etag master Lastchangedby
 {
   update ( features : instance );
   delete ( features : instance );
-  field ( readonly ) Orderitemid,Orderid;
+  field ( readonly ) Orderitemid,Orderid,Createdat,Changedat,Createdby,Lastchangedby;
   field ( numbering : managed ) Orderitemid;
   field ( mandatory : create ) Productname,Quantity,Totalprice;
   determination detOrderAmount  on save { create; field Totalprice,Cukyfield; }
-  field (readonly: update ) Totalprice; //,Cukyfield;
-  association _orders;
+  determination detOrderAmount1 on save { delete; }//field Totalprice,Cukyfield;  }
+  field (readonly: update ) Totalprice,Cukyfield;
+  association _orders;  // { with draft; }
 }

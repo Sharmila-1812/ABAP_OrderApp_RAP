@@ -5,20 +5,24 @@ CLASS lhc_zi_sha_order_items DEFINITION INHERITING FROM cl_abap_behavior_handler
     METHODS detOrderAmount FOR DETERMINE ON SAVE
       IMPORTING keys FOR zi_sha_order_items~detOrderAmount.
     METHODS get_instance_features FOR INSTANCE FEATURES
-      IMPORTING keys REQUEST requested_features FOR ZI_SHA_ORDER_ITEMS RESULT result.
+      IMPORTING keys REQUEST requested_features FOR zi_sha_order_items RESULT result.
+    METHODS detorderamount1 FOR DETERMINE ON SAVE
+      IMPORTING keys FOR zi_sha_order_items~detorderamount1.
 
 ENDCLASS.
 
 CLASS lhc_zi_sha_order_items IMPLEMENTATION.
 
   METHOD detOrderAmount.
+
+
     READ ENTITIES OF zi_sha_orders "IN LOCAL MODE
        ENTITY zi_sha_order_items
        FIELDS (  Totalprice Cukyfield )
        WITH VALUE #( ( %key-Orderitemid = keys[ 1 ]-%key-Orderitemid  ) )
        RESULT DATA(result_items).
 
-    READ ENTITIES OF zi_sha_orders "in  LOCAL MODE
+          READ ENTITIES OF zi_sha_orders "in  LOCAL MODE
    ENTITY zi_sha_order_items BY \_orders
    FIELDS ( Amount Curr )
    WITH VALUE #( ( %key-Orderitemid = result_items[ 1 ]-%key-Orderitemid  ) )
@@ -27,24 +31,24 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
     IF sy-subrc = 0.
 
       LOOP AT result_items INTO DATA(items_amt).
-"IF ( result_amount[ 1 ]-Curr  = result_items[ 1 ]-Cukyfield  ).
+        "IF ( result_amount[ 1 ]-Curr  = result_items[ 1 ]-Cukyfield  ).
 
-          result_amount[ 1 ]-Amount = result_amount[ 1 ]-Amount + items_amt-Totalprice.
-          result_amount[ 1 ]-Curr = result_items[ 1 ]-Cukyfield.
-"ENDIF.
+        result_amount[ 1 ]-Amount = result_amount[ 1 ]-Amount + items_amt-Totalprice.
+        result_amount[ 1 ]-Curr = result_items[ 1 ]-Cukyfield.
+        "ENDIF.
       ENDLOOP.
     ELSE.
       result_amount[ 1 ]-Amount = result_amount[ 1 ]-Amount.
     ENDIF.
 
-    MODIFY ENTITIES OF zi_sha_orders "IN LOCAL MODE
+    MODIFY ENTITIES OF zi_sha_orders" IN LOCAL MODE
    ENTITY zi_sha_orders
    UPDATE FIELDS ( Amount Curr )
-   with VALUE #( (  %key-Orderid = result_amount[ 1 ]-Orderid
+   WITH VALUE #( (  %key-Orderid = result_amount[ 1 ]-Orderid
    Amount = result_amount[ 1 ]-Amount
    Curr = result_amount[ 1 ]-Curr
-   %control-Amount = if_abap_behv=>mk-on
-   %control-Curr = if_abap_behv=>mk-on
+ " %control-Amount = if_abap_behv=>mk-on
+ " %control-Curr = if_abap_behv=>mk-on
  ) )
    FAILED DATA(failed)
    REPORTED DATA(reported1).
@@ -52,25 +56,106 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
-  LOOP AT keys INTO DATA(key).
-   READ ENTITIES OF zi_sha_orders IN LOCAL MODE
-    ENTITY zi_sha_order_items by \_orders
-  FIELDS ( Status )
-  WITH VALUE #( ( %key-Orderitemid = key-Orderitemid ) )
-  RESULT DATA(Status).
+    LOOP AT keys INTO DATA(key).
+      READ ENTITIES OF zi_sha_orders IN LOCAL MODE
+       ENTITY zi_sha_order_items BY \_orders
+     FIELDS ( Status )
+     WITH VALUE #( ( %key-Orderitemid = key-Orderitemid ) )
+     RESULT DATA(Status).
 
-  DATA(lv_feature_control) = if_abap_behv=>fc-o-enabled.
-    IF  status[ 1 ]-Status = 'CMP' OR status[ 1 ]-Status = 'CAN'.
-      lv_feature_control = if_abap_behv=>fc-o-disabled.
-    ENDIF.
+*      DATA(lv_feature_control) = if_abap_behv=>fc-o-enabled.
+*      IF  status[ 1 ]-Status = 'CMP' OR status[ 1 ]-Status = 'CAN'.
+*        lv_feature_control = if_abap_behv=>fc-o-disabled.
+*      ENDIF.
 
-result = VALUE #( ( %tky = key-%tky
-       %features-%delete = lv_feature_control
-       %features-%update = lv_feature_control
-        ) ).
-ENDLOOP.
+      If status[ 1 ]-Status = 'CMP' OR status[ 1 ]-Status = 'CAN'.
+       DATA(lv_feature) = if_abap_behv=>fc-o-disabled.
+      ELSE.
+      lv_feature = if_abap_behv=>fc-o-enabled.
+      ENDIF.
+
+
+    ENDLOOP.
+    result = VALUE #( ( %tky = key-%tky
+           %features-%delete = lv_feature
+           %features-%update = lv_feature
+            ) ).
 
   ENDMETHOD.
+
+  METHOD detOrderAmount1.
+
+*READ ENTITIES OF zi_sha_orders
+*        ENTITY zi_sha_order_items
+*        FIELDS ( Orderid Totalprice Cukyfield )
+*        WITH CORRESPONDING #( keys )
+*        RESULT DATA(deleted_items).
+*
+*    " Check if there are deleted items
+*    IF deleted_items IS NOT INITIAL.
+*
+*        " Read the related order amount
+*        READ ENTITIES OF zi_sha_orders
+*            ENTITY zi_sha_orders
+*            FIELDS ( Amount Curr )
+*            WITH VALUE #( FOR item IN deleted_items ( %key-Orderid = item-Orderid ) )
+*            RESULT DATA(order_amounts).
+*
+*        " Ensure order_amounts table is not empty
+*        LOOP AT deleted_items INTO DATA(del_item).
+*            READ TABLE order_amounts WITH KEY %key-Orderid = del_item-Orderid INTO DATA(order_amt).
+*            IF sy-subrc = 0.
+*
+*                " Subtract deleted item price from total order amount
+*                order_amt-Amount = order_amt-Amount - del_item-Totalprice.
+*                order_amt-Curr = del_item-Cukyfield.
+*
+*                " Modify the updated Amount in the parent order
+*                MODIFY ENTITIES OF zi_sha_orders
+*                    ENTITY zi_sha_orders
+*                    UPDATE FIELDS ( Amount Curr )
+*                    WITH VALUE #( ( %key-Orderid = order_amt-%key-Orderid
+*                                    Amount = order_amt-Amount
+*                                    Curr = order_amt-Curr ) ).
+*            ENDIF.
+*        ENDLOOP.
+*    ENDIF.
+
+
+*   READ ENTITIES OF zi_sha_orders "IN LOCAL MODE
+*       ENTITY zi_sha_order_items
+*       FIELDS (  Totalprice Cukyfield )
+*       WITH VALUE #( ( %key-Orderitemid = keys[ 1 ]-%key-Orderitemid  ) )
+*       RESULT DATA(result_items).
+*
+*  READ ENTITIES OF zi_sha_orders "in  LOCAL MODE
+*   ENTITY zi_sha_order_items BY \_orders
+*   FIELDS ( Amount Curr )
+*   WITH VALUE #( ( %key-Orderitemid = result_items[ 1 ]-%key-Orderitemid  ) )
+*   RESULT DATA(result_amount).
+**
+*    IF sy-subrc = 0.
+*
+*      LOOP AT result_items INTO DATA(items_amt).
+*        "IF ( result_amount[ 1 ]-Curr  = result_items[ 1 ]-Cukyfield  ).
+*
+*        result_amount[ 1 ]-Amount = result_amount[ 1 ]-Amount - items_amt-Totalprice.
+*        result_amount[ 1 ]-Curr = result_items[ 1 ]-Cukyfield.
+*        "ENDIF.
+*      ENDLOOP.
+*    ELSE.
+*      result_amount[ 1 ]-Amount = result_amount[ 1 ]-Amount.
+*    ENDIF.
+*
+*    MODIFY ENTITIES OF zi_sha_orders" IN LOCAL MODE
+*   ENTITY zi_sha_orders
+*   UPDATE FIELDS ( Amount Curr )
+*   WITH VALUE #( (  %key-Orderid = result_amount[ 1 ]-Orderid
+*   Amount = result_amount[ 1 ]-Amount
+*   Curr = result_amount[ 1 ]-Curr ) )
+*   FAILED DATA(failed)
+*   REPORTED DATA(reported1).
+ ENDMETHOD.
 
 ENDCLASS.
 
@@ -97,29 +182,40 @@ CLASS lhc_ZI_SHA_ORDERS IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
-  LOOP AT keys INTO DATA(key).
-    READ ENTITIES OF zi_sha_orders IN LOCAL MODE
-    ENTITY zi_sha_orders BY \_orderItems
-        FIELDS ( Orderitemid  )
-        WITH VALUE #( ( %key-Orderid = key-Orderid ) )
-        RESULT DATA(Orders).
+    LOOP AT keys INTO DATA(key).
+      READ ENTITIES OF zi_sha_orders IN LOCAL MODE
+      ENTITY zi_sha_orders BY \_orderItems
+          FIELDS ( Orderitemid  )
+          WITH VALUE #( ( %key-Orderid = key-Orderid ) )
+          RESULT DATA(Orders).
 
-    READ ENTITIES OF zi_sha_orders IN LOCAL MODE
-    ENTITY zi_sha_orders
-  FIELDS ( Status )
-  WITH VALUE #( ( %key-Orderid = key-Orderid ) )
-  RESULT DATA(Status).
+      READ ENTITIES OF zi_sha_orders IN LOCAL MODE
+      ENTITY zi_sha_orders
+    FIELDS ( Status )
+    WITH VALUE #( ( %key-Orderid = key-Orderid ) )
+    RESULT DATA(Status).
 
-    DATA(lv_feature_control) = if_abap_behv=>fc-o-enabled.
-    IF lines( orders ) = 5 OR status[ 1 ]-Status = 'CMP' OR status[ 1 ]-Status = 'CAN'.
-      lv_feature_control = if_abap_behv=>fc-o-disabled.
-    ENDIF.
-result = VALUE #(  ( %tky = key-%tky
-       %features-%assoc-_orderItems = lv_feature_control
-       %features-%delete = lv_feature_control
-       %features-%update = lv_feature_control
-        ) ).
-ENDLOOP.
+      IF lines( orders ) = 5.
+        DATA(lv_feature_control) = if_abap_behv=>fc-o-disabled.
+      ELSE.
+      lv_feature_control = if_abap_behv=>fc-o-enabled.
+      ENDIF.
+
+      If  status[ 1 ]-Status = 'CMP' OR status[ 1 ]-Status = 'CAN' and lines( orders ) < 5.
+       DATA(lv_feature) = if_abap_behv=>fc-o-disabled.
+       lv_feature_control = if_abap_behv=>fc-o-disabled.
+      ELSE.
+      lv_feature = if_abap_behv=>fc-o-enabled.
+      lv_feature_control = if_abap_behv=>fc-o-enabled.
+      ENDIF.
+
+  result = VALUE #(  ( %tky = key-%tky
+           %features-%assoc-_orderItems = lv_feature_control
+           %features-%delete = lv_feature
+           %features-%update = lv_feature
+            ) ).
+    ENDLOOP.
+
 
   ENDMETHOD.
 
@@ -184,17 +280,17 @@ ENDLOOP.
 
 
   METHOD detStatus.
-   MODIFY ENTITIES OF zi_sha_orders IN LOCAL MODE
-    ENTITY zi_sha_orders
-    UPDATE FROM VALUE #( ( %key-Orderid = keys[ 1 ]-%key-Orderid
-    Status = 'PRC'
+    MODIFY ENTITIES OF zi_sha_orders IN LOCAL MODE
+     ENTITY zi_sha_orders
+     UPDATE FROM VALUE #( ( %key-Orderid = keys[ 1 ]-%key-Orderid
+     Status = 'PRC'
     Amount = '0.0'
-    Curr = 'INR'
-    %control-Status = if_abap_behv=>mk-on
-    %control-Amount = if_abap_behv=>mk-on
-    %control-Curr = if_abap_behv=>mk-on ) )
-    FAILED DATA(failed)
-    REPORTED DATA(reprt).
+     Curr = 'INR'
+     %control-Status = if_abap_behv=>mk-on
+     %control-Amount = if_abap_behv=>mk-on
+     %control-Curr = if_abap_behv=>mk-on ) )
+     FAILED DATA(failed)
+     REPORTED DATA(reprt).
   ENDMETHOD.
 
 ENDCLASS.

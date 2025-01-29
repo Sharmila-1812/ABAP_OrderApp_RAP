@@ -1,21 +1,30 @@
 projection;
 strict ( 2 );
+//use draft;
 
 define behavior for ZC_SHA_ORDERS //alias <alias_name>
+use etag
 {
   use create;
   use update;
   use delete;
 
-  use association _orderItems { create; }
+  use association _orderItems { create; } //with draft;
   use action setCompleted;
   use action setCancelled;
+
+//  use action Edit;
+//  use action Activate;
+//  use action Discard;
+//  use action Resume;
+//  use action Prepare;
 }
 
 define behavior for ZC_SHA_ORDER_ITEMS //alias <alias_name>
+use etag
 {
   use update;
   use delete;
 
-  use association _orders;
+  use association _orders; //{with draft; }
 }

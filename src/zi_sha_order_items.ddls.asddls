@@ -7,6 +7,8 @@
     sizeCategory: #S,
     dataClass: #MIXED
 }
+
+
 define view entity ZI_SHA_ORDER_ITEMS as select from zsha_order_items
 association to parent ZI_SHA_ORDERS as _orders on $projection.Orderid = _orders.Orderid
 {
@@ -21,9 +23,13 @@ association to parent ZI_SHA_ORDERS as _orders on $projection.Orderid = _orders.
     unitprice as Unitprice,
     @Semantics.amount.currencyCode: 'Cukyfield'
     totalprice as Totalprice,
+    @Semantics.user.createdBy: true
     createdby as Createdby,
+    @Semantics.systemDateTime.createdAt: true
     createdat as Createdat,
+    @Semantics.user.lastChangedBy: true
     lastchangedby as Lastchangedby,
+    @Semantics.systemDateTime.lastChangedAt: true
     changedat as Changedat,
     _orders
 }
