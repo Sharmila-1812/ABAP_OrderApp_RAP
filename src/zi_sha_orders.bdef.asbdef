@@ -42,7 +42,8 @@ etag master Lastchangedby
   field ( numbering : managed ) Orderitemid;
   field ( mandatory : create ) Productname,Quantity,Totalprice;
   determination detOrderAmount  on save { create; field Totalprice,Cukyfield; }
-  determination detOrderAmount1 on save { delete; }//field Totalprice,Cukyfield;  }
-  field (readonly: update ) Totalprice,Cukyfield;
+  determination detOrderAmountDelete on modify{ delete; field Totalprice, Cukyfield; }
+  //determination detOrderAmount1 on save { delete; }//field Totalprice,Cukyfield;  }
+  //field (readonly: update ) Totalprice,Cukyfield;
   association _orders;  // { with draft; }
 }

@@ -11,7 +11,9 @@ ENDCLASS.
 
 
 
-CLASS zsample_class_sha IMPLEMENTATION.
+CLASS ZSAMPLE_CLASS_SHA IMPLEMENTATION.
+
+
 METHOD if_oo_adt_classrun~main.
 DATA: lt_order_status TYPE TABLE OF zord_status.
 

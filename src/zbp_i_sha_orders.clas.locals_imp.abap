@@ -6,15 +6,16 @@ CLASS lhc_zi_sha_order_items DEFINITION INHERITING FROM cl_abap_behavior_handler
       IMPORTING keys FOR zi_sha_order_items~detOrderAmount.
     METHODS get_instance_features FOR INSTANCE FEATURES
       IMPORTING keys REQUEST requested_features FOR zi_sha_order_items RESULT result.
-    METHODS detorderamount1 FOR DETERMINE ON SAVE
-      IMPORTING keys FOR zi_sha_order_items~detorderamount1.
+    METHODS detorderamountdelete FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR zi_sha_order_items~detorderamountdelete.
+*    METHODS detorderamount1 FOR DETERMINE ON SAVE
+*      IMPORTING keys FOR zi_sha_order_items~detorderamount1.
 
 ENDCLASS.
 
 CLASS lhc_zi_sha_order_items IMPLEMENTATION.
 
   METHOD detOrderAmount.
-
 
     READ ENTITIES OF zi_sha_orders "IN LOCAL MODE
        ENTITY zi_sha_order_items
@@ -27,7 +28,8 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
    FIELDS ( Amount Curr )
    WITH VALUE #( ( %key-Orderitemid = result_items[ 1 ]-%key-Orderitemid  ) )
    RESULT DATA(result_amount).
-*
+
+
     IF sy-subrc = 0.
 
       LOOP AT result_items INTO DATA(items_amt).
@@ -44,6 +46,8 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
     MODIFY ENTITIES OF zi_sha_orders" IN LOCAL MODE
    ENTITY zi_sha_orders
    UPDATE FIELDS ( Amount Curr )
+
+
    WITH VALUE #( (  %key-Orderid = result_amount[ 1 ]-Orderid
    Amount = result_amount[ 1 ]-Amount
    Curr = result_amount[ 1 ]-Curr
@@ -53,7 +57,7 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
    FAILED DATA(failed)
    REPORTED DATA(reported1).
 
-  ENDMETHOD.
+ ENDMETHOD.
 
   METHOD get_instance_features.
     LOOP AT keys INTO DATA(key).
@@ -83,7 +87,7 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD detOrderAmount1.
+ " METHOD detOrderAmount1.
 
 *READ ENTITIES OF zi_sha_orders
 *        ENTITY zi_sha_order_items
@@ -155,7 +159,47 @@ CLASS lhc_zi_sha_order_items IMPLEMENTATION.
 *   Curr = result_amount[ 1 ]-Curr ) )
 *   FAILED DATA(failed)
 *   REPORTED DATA(reported1).
- ENDMETHOD.
+" ENDMETHOD.
+
+  METHOD detOrderAmountDelete.
+  READ ENTITIES OF zi_sha_orders
+        ENTITY zi_sha_order_items
+        FIELDS ( Orderid Totalprice Cukyfield )
+        WITH VALUE #( ( %key-Orderitemid = keys[ 1 ]-%key-Orderitemid  ) )
+        RESULT DATA(deleted_items).
+
+    " Check if there are deleted items
+    IF deleted_items IS not INITIAL.
+
+        " Read the related order amount
+        READ ENTITIES OF zi_sha_orders
+            ENTITY zi_sha_orders
+            FIELDS ( Amount Curr )
+            WITH VALUE #( FOR item IN deleted_items ( %key-Orderid = item-Orderid ) )
+            RESULT DATA(order_amounts).
+
+        " Ensure order_amounts table is not empty
+        LOOP AT deleted_items INTO DATA(del_item).
+            READ TABLE order_amounts WITH KEY %key-Orderid = del_item-Orderid INTO DATA(order_amt).
+            IF sy-subrc = 0.
+
+                " Subtract deleted item price from total order amount
+                order_amt-Amount = order_amt-Amount - del_item-Totalprice.
+                order_amt-Curr = del_item-Cukyfield.
+
+                " Modify the updated Amount in the parent order
+                MODIFY ENTITIES OF zi_sha_orders
+                    ENTITY zi_sha_orders
+                    UPDATE FIELDS ( Amount Curr )
+                    WITH VALUE #( ( %key-Orderid = order_amt-%key-Orderid
+                                    Amount = order_amt-Amount
+                                    Curr = order_amt-Curr ) ).
+            ENDIF.
+        ENDLOOP.
+    ENDIF.
+
+
+  ENDMETHOD.
 
 ENDCLASS.
 
